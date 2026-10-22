@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>منوی دیجیتال</title>
+<script>try{var t=localStorage.getItem('th')||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');document.documentElement.dataset.theme=t}catch(e){document.documentElement.dataset.theme='light'}</script>
+<style>
+:root,.th-light{--bg:#f5ebe0;--card:#fffaf3;--tx:#3b2314;--mu:#8a6f5a;--ac:#8b5a2b;--bd:#e3d0b8;--on:#fff;color-scheme:light}
+:root[data-theme="dark"],.th-dark{--bg:#1e140e;--card:#2a1c13;--tx:#f1e3d3;--mu:#b09a85;--ac:#d9a066;--bd:#44301f;--on:#1e140e;color-scheme:dark}
+#th,.thb{position:fixed;top:12px;left:12px;z-index:20;width:42px;height:42px;border-radius:50%;border:1px solid var(--bd);background:var(--card);color:var(--ac);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0}
+#th svg,.thb svg{width:24px;height:24px}
+.ov{position:fixed;inset:0;z-index:50;pointer-events:none;background:var(--bg);color:var(--tx);overflow:hidden}
+.ovi{position:absolute;left:0;right:0;top:0;padding-bottom:110px}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font-family:Vazirmatn,Tahoma,sans-serif;padding-bottom:110px}
+.w{max-width:620px;margin:auto;padding:14px}
+h1{margin:0;font-size:22px;padding-left:52px}
+.tb{display:inline-block;background:var(--ac);color:var(--on);border-radius:99px;padding:3px 12px;font-size:14px;margin-top:6px}
+.warn{background:var(--card);border:1px dashed var(--ac);border-radius:12px;padding:10px;margin:10px 0;font-size:14px;line-height:1.9}
+h2{font-size:16px;color:var(--ac);margin:18px 0 6px}
+.it{display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:10px 12px;margin-bottom:8px}
+.it .n{flex:1}.it .p{color:var(--mu);font-size:13px}
+button,input{font:inherit}
+.q{width:34px;height:34px;border-radius:50%;border:1px solid var(--ac);background:none;color:var(--ac);font-size:18px;cursor:pointer}
+.c{min-width:22px;text-align:center}
+.bar{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--bd);padding:10px 14px}
+.bar div{max-width:620px;margin:auto;display:flex;align-items:center;gap:10px}
+.go{flex:1;background:var(--ac);color:var(--on);border:0;border-radius:10px;padding:12px;cursor:pointer}
+.go:disabled{opacity:.4}
+input{background:var(--bg);color:var(--tx);border:1px solid var(--bd);border-radius:8px;padding:8px;width:100%}
+.row{display:flex;gap:6px;margin-bottom:6px}.row input:nth-child(2){max-width:110px}.row input:nth-child(3){max-width:100px}
+.sm{background:var(--card);border:1px solid var(--bd);color:var(--tx);border-radius:8px;padding:8px 12px;cursor:pointer}
+.qr{display:inline-block;text-align:center;margin:8px;font-size:13px}.qr img,.qr canvas{background:#fff;padding:6px}
+.ok{text-align:center;padding:40px 10px;font-size:18px;line-height:2}
+label{display:block;font-size:13px;color:var(--mu);margin:8px 0 3px}
+</style>
+</head>
+<body>
+<button id="th" type="button" aria-label="تغییر حالت روز و شب"></button>
+<div class="w" id="app"></div>
+<script type="application/json" id="menu-data">{"name":"کافه نمونه","tables":8,"phone":"","items":[
+{"id":"a1","cat":"نوشیدنی گرم","name":"اسپرسو","price":65000},
+{"id":"a2","cat":"نوشیدنی گرم","name":"کاپوچینو","price":85000},
+{"id":"a3","cat":"نوشیدنی گرم","name":"چای","price":40000},
+{"id":"b1","cat":"نوشیدنی سرد","name":"لیموناد","price":70000},
+{"id":"b2","cat":"نوشیدنی سرد","name":"آیس لاته","price":95000},
+{"id":"c1","cat":"غذا","name":"ساندویچ مرغ","price":180000},
+{"id":"c2","cat":"غذا","name":"پاستا آلفردو","price":230000},
+{"id":"d1","cat":"دسر","name":"چیزکیک","price":120000}]}</script>
+<script>
+const $app=document.getElementById('app');
+const D=JSON.parse(document.getElementById('menu-data').textContent);
+const P=new URLSearchParams(location.search);
+const table=parseInt(P.get('t'),10)||0;
+const fa=n=>Number(n).toLocaleString('fa-IR');
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let cart={};
+const tot=()=>D.items.reduce((s,i)=>s+(cart[i.id]||0)*i.price,0);
+const cnt=()=>Object.values(cart).reduce((a,b)=>a+b,0);
+
+function customer(){
+  const cats=[...new Set(D.items.map(i=>i.cat))];
+  let h='<h1>'+esc(D.name)+'</h1>'+(table?'<span class="tb">میز '+fa(table)+'</span>':'<div class="warn">شماره میز مشخص نیست. لطفاً QR روی میز را اسکن کنید.</div>');
+  cats.forEach(c=>{h+='<h2>'+esc(c)+'</h2>';D.items.filter(i=>i.cat===c).forEach(i=>{
+    h+='<div class="it"><div class="n">'+esc(i.name)+'<div class="p">'+fa(i.price)+' تومان</div></div><button class="q" data-d="-1" data-i="'+i.id+'">−</button><span class="c">'+fa(cart[i.id]||0)+'</span><button class="q" data-d="1" data-i="'+i.id+'">+</button></div>';});});
+  h+='<div class="bar"><div><b>جمع: '+fa(tot())+' تومان</b><button class="go" id="send" '+(cnt()&&table?'':'disabled')+'>ثبت سفارش</button></div></div>';
+  $app.innerHTML=h;
+  $app.querySelectorAll('.q').forEach(b=>b.onclick=()=>{const i=b.dataset.i;cart[i]=Math.max(0,(cart[i]||0)+ +b.dataset.d);customer();});
+  document.getElementById('send').onclick=submit;
+}
+function submit(){
+  const lines=D.items.filter(i=>cart[i.id]).map(i=>cart[i.id]+'× '+i.name);
+  const total=tot();
+  const text='سفارش جدید - میز '+table+'\n'+lines.join('\n')+'\nجمع: '+total+' تومان';
+  const phone=(D.phone||'').replace(/[^\d+]/g,'');
+  if(phone){location.href='sms:'+phone+'?&body='+encodeURIComponent(text);}
+  $app.innerHTML='<div class="ok">'+(phone?'پیامک سفارش آماده شد. حتماً دکمه «ارسال» را در برنامه پیامک بزنید.':'لطفاً سفارش را به صندوق اعلام کنید.')+'<br><br><b>میز '+fa(table)+'</b><br>'+lines.map(esc).join('<br>')+'<br>جمع: '+fa(total)+' تومان<br><br><button class="sm" id="back">بازگشت به منو</button></div>';
+  document.getElementById('back').onclick=customer;
+}
+
+function admin(){
+  $app.innerHTML='<h1>ویرایش منو</h1>'+
+  '<label>نام مجموعه</label><input id="nm" value="'+esc(D.name)+'">'+
+  '<label>شماره موبایل فروشنده (مثلاً 09121234567)</label><input id="ph" type="tel" value="'+esc(D.phone||'')+'">'+
+  '<label>تعداد میزها</label><input id="tn" type="number" min="1" value="'+D.tables+'">'+
+  '<h2>آیتم‌ها (نام، قیمت به تومان، دسته)</h2><div id="its"></div>'+
+  '<button class="sm" id="add">+ آیتم جدید</button>'+
+  '<button class="go" id="save" style="width:100%;margin-top:14px">دانلود فایل جدید منو</button>'+
+  '<div class="warn">بعد از دانلود، فایل جدید را در سایت جایگزین فایل قبلی کنید. آدرس و QR ها تغییر نمی‌کنند.</div>'+
+  '<h2>QR میزها</h2><label>آدرس سایت منو (بعد از آپلود اینجا بنویسید)</label><input id="url" value="'+esc(location.origin+location.pathname)+'"><div id="qrs"></div>';
+  const its=document.getElementById('its');
+  const row=i=>{const r=document.createElement('div');r.className='row';r.dataset.id=i.id;r.innerHTML='<input value="'+esc(i.name)+'" placeholder="نام"><input type="number" value="'+i.price+'" placeholder="قیمت"><input value="'+esc(i.cat)+'" placeholder="دسته"><button class="sm">✕</button>';r.lastChild.onclick=()=>r.remove();its.appendChild(r);};
+  D.items.forEach(row);
+  document.getElementById('add').onclick=()=>row({id:'n'+Date.now(),name:'',price:0,cat:'غذا'});
+  const draw=()=>{const q=document.getElementById('qrs');q.innerHTML='';const base=document.getElementById('url').value.trim().split('?')[0];const n=Math.max(1,+document.getElementById('tn').value||1);
+    for(let t=1;t<=n;t++){const d=document.createElement('div');d.className='qr';q.appendChild(d);new QRCode(d,{text:base+'?t='+t,width:130,height:130});d.insertAdjacentHTML('beforeend','<div>میز '+fa(t)+'</div>');}};
+  const safeDraw=()=>{if(window.QRCode)draw();};
+  document.getElementById('url').oninput=safeDraw;document.getElementById('tn').oninput=safeDraw;
+  if(window.QRCode)draw();else{const sc=document.createElement('script');sc.src='https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';sc.onload=draw;sc.onerror=()=>{document.getElementById('qrs').innerHTML='<div class="warn">ساخت QR به اینترنت آزاد (فیلترشکن) نیاز دارد. فیلترشکن را روشن کنید و صفحه را دوباره باز کنید.</div>';};document.head.appendChild(sc);}
+  document.getElementById('save').onclick=()=>{
+    const items=[...its.children].map(r=>{const v=r.querySelectorAll('input');return{id:r.dataset.id,name:v[0].value.trim(),price:+v[1].value||0,cat:v[2].value.trim()||'سایر'};}).filter(i=>i.name);
+    const nd={name:document.getElementById('nm').value.trim()||D.name,tables:Math.max(1,+document.getElementById('tn').value||1),phone:document.getElementById('ph').value.trim(),items};
+    const doc=document.documentElement.cloneNode(true);
+    doc.querySelector('#menu-data').textContent=JSON.stringify(nd);
+    doc.querySelector('#app').innerHTML='';
+    const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['<!DOCTYPE html>\n'+doc.outerHTML],{type:'text/html'}));a.download='index.html';a.click();
+  };
+}
+
+const SUN='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="3"/><path d="M8 1.5v1.5M8 13v1M1.5 8H3M13 8h1M3.4 3.4l1 1M11.6 3.4l-1 1M3.4 12.6l1-1"/><path d="M9.5 21a3.5 3.5 0 0 1-.4-6.97A5 5 0 0 1 18.7 15.3 2.9 2.9 0 0 1 18 21z" fill="var(--card)"/></svg>';
+const MOON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19.5 14.2A8 8 0 0 1 9.8 4.5a8 8 0 1 0 9.7 9.7z"/><path d="M18 2.5l.7 1.6 1.6.7-1.6.7L18 7.1l-.7-1.6-1.6-.7 1.6-.7z" fill="currentColor"/></svg>';
+const thBtn=document.getElementById('th');
+function paintBtn(){thBtn.innerHTML=document.documentElement.dataset.theme==='dark'?SUN:MOON;}
+function setTheme(t){document.documentElement.dataset.theme=t;try{localStorage.setItem('th',t);}catch(e){}paintBtn();}
+paintBtn();
+let busy=false,fromCorner=false,spin=1;
+thBtn.onclick=()=>{
+  if(busy)return;
+  const next=document.documentElement.dataset.theme==='dark'?'light':'dark';
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches||!document.documentElement.animate){setTheme(next);return;}
+  busy=true;
+  const r=thBtn.getBoundingClientRect();
+  const x=fromCorner?innerWidth:r.left+r.width/2,y=fromCorner?innerHeight:r.top+r.height/2;
+  fromCorner=!fromCorner;
+  const R=Math.hypot(Math.max(x,innerWidth-x),Math.max(y,innerHeight-y))+4;
+  const ov=document.createElement('div');ov.className='ov th-'+next;
+  const inner=document.createElement('div');inner.className='ovi';
+  const copy=$app.cloneNode(true);copy.removeAttribute('id');inner.appendChild(copy);
+  const bc=thBtn.cloneNode(false);bc.removeAttribute('id');bc.className='thb';bc.style.pointerEvents='none';bc.innerHTML=next==='dark'?SUN:MOON;
+  ov.appendChild(inner);ov.appendChild(bc);
+  const place=()=>{inner.style.top=(-scrollY)+'px';};place();
+  addEventListener('scroll',place,{passive:true});
+  ov.style.clipPath='circle(0px at '+x+'px '+y+'px)';
+  document.body.appendChild(ov);
+  [thBtn,bc].forEach(el=>el.animate({transform:['rotate(0deg)','rotate('+(spin*360)+'deg)']},{duration:1000,easing:'ease-in-out'}));
+  spin=-spin;
+  const an=ov.animate({clipPath:['circle(0px at '+x+'px '+y+'px)','circle('+R+'px at '+x+'px '+y+'px)']},{duration:1000,easing:'ease-in-out',fill:'forwards'});
+  an.onfinish=()=>{setTheme(next);removeEventListener('scroll',place);ov.remove();busy=false;};
+};
+P.get('admin')==='1'?admin():customer();
+</script>
+</body>
+</html>
