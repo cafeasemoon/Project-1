@@ -33,6 +33,14 @@ input{background:var(--bg);color:var(--tx);border:1px solid var(--bd);border-rad
 .sm{background:var(--card);border:1px solid var(--bd);color:var(--tx);border-radius:8px;padding:8px 12px;cursor:pointer}
 .qr{display:inline-block;text-align:center;margin:8px;font-size:13px}.qr img,.qr canvas{background:#fff;padding:6px}
 .ok{text-align:center;padding:40px 10px;font-size:18px;line-height:2}
+button.chip{background:var(--card);color:var(--tx);border:1px solid var(--bd);border-radius:99px;padding:9px 16px;margin:4px;cursor:pointer}
+button.chip.on{background:var(--ac);color:var(--on);border-color:var(--ac)}
+.wish{font-size:20px;margin:14px 0 22px;color:var(--ac)}
+.ok .sm{margin:4px}
+#bgart,.bgart{position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.3}
+#bgart svg,.bgart svg{width:100%;height:100%;display:block}
+.ic{fill:var(--bg);stroke:var(--ac);stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.ic.nf{fill:none}
 label{display:block;font-size:13px;color:var(--mu);margin:8px 0 3px}
 </style>
 </head>
@@ -54,13 +62,14 @@ const cnt=()=>Object.values(cart).reduce((a,b)=>a+b,0);
 
 function customer(){
   const cats=[...new Set(D.items.map(i=>i.cat))];
-  let h='<h1>'+esc(D.name)+'</h1>'+(table?'<span class="tb">میز '+fa(table)+'</span>':'<div class="warn">شماره میز مشخص نیست. لطفاً QR روی میز را اسکن کنید.</div>');
+  let h='<h1>'+esc(D.name)+'</h1>'+(table?'<span class="tb">میز '+fa(table)+'</span> <button class="sm" id="svc" style="margin-top:6px">درخواست خدمات</button>':'<div class="warn">شماره میز مشخص نیست. لطفاً QR روی میز را اسکن کنید.</div>');
   cats.forEach(c=>{h+='<h2>'+esc(c)+'</h2>';D.items.filter(i=>i.cat===c).forEach(i=>{
     h+='<div class="it"><div class="n">'+esc(i.name)+'<div class="p">'+fa(i.price)+' تومان</div></div><button class="q" data-d="-1" data-i="'+i.id+'">−</button><span class="c">'+fa(cart[i.id]||0)+'</span><button class="q" data-d="1" data-i="'+i.id+'">+</button></div>';});});
   h+='<div class="bar"><div><b>جمع: '+fa(tot())+' تومان</b><button class="go" id="send" '+(cnt()&&table?'':'disabled')+'>ثبت سفارش</button></div></div>';
   $app.innerHTML=h;
   $app.querySelectorAll('.q').forEach(b=>b.onclick=()=>{const i=b.dataset.i;cart[i]=Math.max(0,(cart[i]||0)+ +b.dataset.d);customer();});
   document.getElementById('send').onclick=preview;
+  const sv=document.getElementById('svc');if(sv)sv.onclick=service;
 }
 const pn=n=>Number(n).toLocaleString('en-US').replace(/\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[d]);
 function orderRows(){return D.items.filter(i=>cart[i.id]);}
@@ -72,17 +81,44 @@ function preview(){
   const rows=orderRows();
   $app.innerHTML='<h1>'+esc(D.name)+'</h1><span class="tb">میز '+fa(table)+'</span><h2>پیش‌نمایش سفارش</h2>'+
   rows.map(i=>'<div class="it"><div class="n">'+fa(cart[i.id])+'× '+esc(i.name)+'<div class="p">'+fa(i.price)+' تومان</div></div><b>'+fa(cart[i.id]*i.price)+'</b></div>').join('')+
-  '<div class="warn"><b>جمع کل: '+fa(tot())+' تومان</b><br>اگر سفارش درست است «تأیید و ارسال پیامک» را بزنید.</div>'+
+  '<div class="warn"><b>جمع کل: '+fa(tot())+' تومان</b><br>اگر سفارش درست است «تأیید و ارسال پیامک» را بزنید. بعد از آن برنامه پیامک باز می‌شود؛ حتماً دکمه «ارسال» را در آن بزنید.</div>'+
   '<div class="bar"><div><button class="sm" id="edit">ویرایش سفارش</button><button class="go" id="ok">تأیید و ارسال پیامک</button></div></div>';
   document.getElementById('edit').onclick=customer;
   document.getElementById('ok').onclick=submit;
 }
-function submit(){
-  const rows=orderRows(),text=orderText();
+const WISH=['روز خوبی رو برایتان آرزومندیم','با آرزوی بهترین‌ها برای شما','امیدواریم لحظه‌های خوشی در کنار ما داشته باشید','نوش جان! روزتان پر از آرامش و شادی'];
+function thanks(title,note){
+  const w=WISH[Math.floor(Math.random()*WISH.length)];
+  $app.innerHTML='<div class="ok"><b>'+title+'</b>'+(note?'<div style="font-size:14px">'+note+'</div>':'')+'<div class="wish">'+w+'</div><button class="sm" id="back">بازگشت به منو</button><button class="sm" id="svc2">درخواست خدمات</button></div>';
+  document.getElementById('back').onclick=customer;
+  document.getElementById('svc2').onclick=service;
+}
+function sendSms(text){
   const phone=(D.phone||'').replace(/[^\d+]/g,'');
   if(phone){location.href='sms:'+phone+'?&body='+encodeURIComponent(text);}
-  $app.innerHTML='<div class="ok">'+(phone?'پیامک سفارش آماده شد. حتماً دکمه «ارسال» را در برنامه پیامک بزنید.':'لطفاً سفارش را به صندوق اعلام کنید.')+'<br><br><b>میز '+fa(table)+'</b><br>'+rows.map(i=>fa(cart[i.id])+'× '+esc(i.name)).join('<br>')+'<br><b>جمع کل: '+fa(tot())+' تومان</b><br><br><button class="sm" id="back">بازگشت به منو</button></div>';
-  document.getElementById('back').onclick=customer;
+  return !!phone;
+}
+function submit(){
+  const ok=sendSms(orderText());
+  cart={};
+  thanks('✅ ممنون از سفارش شما',ok?'':'ارسال خودکار در دسترس نیست. لطفاً سفارش را به صندوق اعلام کنید.');
+}
+const SVC=['دستمال','نی','آب','قاشق و چنگال','صورت‌حساب','گارسون'];
+function serviceText(sel,extra){
+  return 'درخواست میز '+pn(table)+':\n'+sel.concat(extra?[extra]:[]).map(x=>'- '+x).join('\n');
+}
+function service(){
+  const sel=new Set();
+  $app.innerHTML='<h1>'+esc(D.name)+'</h1><span class="tb">میز '+fa(table)+'</span><h2>درخواست خدمات</h2><div class="warn">چه چیزی لازم دارید؟ موارد را انتخاب کنید.</div><div id="chips">'+SVC.map((x,i)=>'<button class="chip" data-i="'+i+'">'+x+'</button>').join('')+'</div><label>توضیح دیگر (اختیاری)</label><input id="ex" placeholder="مثلاً: یک لیوان اضافه">'+
+  '<div class="bar"><div><button class="sm" id="cancel">بازگشت</button><button class="go" id="sendsvc" disabled>ارسال درخواست</button></div></div>';
+  const upd=()=>{document.getElementById('sendsvc').disabled=!(sel.size||document.getElementById('ex').value.trim());};
+  document.querySelectorAll('.chip').forEach(c=>c.onclick=()=>{const k=SVC[+c.dataset.i];sel.has(k)?sel.delete(k):sel.add(k);c.classList.toggle('on');upd();});
+  document.getElementById('ex').oninput=upd;
+  document.getElementById('cancel').onclick=customer;
+  document.getElementById('sendsvc').onclick=()=>{
+    const ok=sendSms(serviceText([...sel],document.getElementById('ex').value.trim()));
+    thanks('درخواست شما آماده شد',ok?'برنامه پیامک باز می‌شود؛ حتماً دکمه «ارسال» را بزنید.':'ارسال خودکار در دسترس نیست. لطفاً به گارسون اعلام کنید.');
+  };
 }
 
 function admin(){
@@ -110,6 +146,7 @@ function admin(){
     const doc=document.documentElement.cloneNode(true);
     doc.querySelector('#menu-data').textContent=JSON.stringify(nd);
     doc.querySelector('#app').innerHTML='';
+    doc.querySelectorAll('#bgart,.ov').forEach(n=>n.remove());
     const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['<!DOCTYPE html>\n'+doc.outerHTML],{type:'text/html'}));a.download='index.html';a.click();
   };
 }
@@ -120,6 +157,27 @@ const thBtn=document.getElementById('th');
 function paintBtn(){thBtn.innerHTML=document.documentElement.dataset.theme==='dark'?SUN:MOON;}
 function setTheme(t){document.documentElement.dataset.theme=t;try{localStorage.setItem('th',t);}catch(e){}paintBtn();}
 paintBtn();
+
+const ICONS={
+espresso:'<path class="ic" d="M9 21h24v6a12 12 0 0 1-24 0z"/><path class="ic nf" d="M33 23h2.5a4 4 0 0 1 0 8H32"/><path class="ic nf" d="M5 42h32"/><path class="ic nf" d="M17 16c-3-3 3-5 0-9M25 16c-3-3 3-5 0-9"/>',
+mug:'<path class="ic" d="M10 18h22v16a6 6 0 0 1-6 6H16a6 6 0 0 1-6-6z"/><path class="ic nf" d="M32 22h3a4.5 4.5 0 0 1 0 9h-3"/><path class="ic nf" d="M14 26c2-2 4 2 6 0s4 2 6 0 2-1 3 0"/><path class="ic nf" d="M17 13c-3-3 3-4 0-8M25 13c-3-3 3-4 0-8"/>',
+icecream:'<circle class="ic" cx="24" cy="10" r="2.5"/><path class="ic" d="M13 26a11 11 0 0 1 22 0z"/><path class="ic" d="M15.5 26L24 45l8.5-19"/><path class="ic nf" d="M18.5 33h11M21 39h6"/>',
+croissant:'<path class="ic" d="M5 31c2-13 10-19 19-19s17 6 19 19c-3 2-5-1-8 1-2-4-6-7-11-7s-9 3-11 7c-3-2-5 1-8-1z"/><path class="ic nf" d="M16 21l4 7M24 17v8M32 21l-4 7"/>',
+bean:'<g transform="rotate(35 24 24)"><ellipse class="ic" cx="24" cy="24" rx="10" ry="16"/><path class="ic nf" d="M24 8c-7 8 7 16 0 32"/></g>',
+cupcake:'<path class="ic" d="M14 28h20l-3 15H17z"/><path class="ic" d="M11 28a13 10 0 0 1 26 0z"/><circle class="ic" cx="24" cy="13" r="2.2"/><path class="ic nf" d="M20 30l1.5 12M28 30l-1.5 12"/>',
+iced:'<path class="ic" d="M14 14h20l-3 28H17z"/><path class="ic nf" d="M12 14h24"/><rect class="ic" x="19" y="21" width="6" height="6" rx="1" transform="rotate(15 22 24)"/><rect class="ic" x="26" y="28" width="6" height="6" rx="1" transform="rotate(-10 29 31)"/><path class="ic nf" d="M27 14l4-10h6"/>',
+donut:'<circle class="ic" cx="24" cy="24" r="16"/><circle class="ic" cx="24" cy="24" r="5.5"/><path class="ic nf" d="M15 14l3 2M33 14l-3 2M12 26l3-1M36 27l-3-1M24 38v-3M17 33l2-2"/>'
+};
+const ART=[['espresso',12,14,-6],['icecream',150,30,8],['mug',82,108,4],['croissant',205,122,-10],['bean',14,196,20],['cupcake',146,196,-4],['iced',214,208,6],['donut',20,108,-8],['bean',226,28,-30]];
+let artN=0;
+function artSvg(k){
+  const syms=Object.keys(ICONS).map(n=>'<symbol id="'+n+k+'" viewBox="0 0 48 48">'+ICONS[n]+'</symbol>').join('');
+  const uses=ART.map(a=>'<use href="#'+a[0]+k+'" x="'+a[1]+'" y="'+a[2]+'" width="56" height="56" transform="rotate('+a[3]+' '+(a[1]+28)+' '+(a[2]+28)+')"/>').join('');
+  return '<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%"><defs>'+syms+'<pattern id="pt'+k+'" width="280" height="280" patternUnits="userSpaceOnUse">'+uses+'</pattern></defs><rect width="100%" height="100%" fill="url(#pt'+k+')"/></svg>';
+}
+function artDiv(cls){const d=document.createElement('div');d.className=cls;d.innerHTML=artSvg('x'+(++artN));return d;}
+document.querySelectorAll('#bgart').forEach(n=>n.remove());
+const bgEl=artDiv('bgart');bgEl.id='bgart';document.body.prepend(bgEl);
 let busy=false,fromCorner=false,spin=1;
 thBtn.onclick=()=>{
   if(busy)return;
@@ -131,7 +189,7 @@ thBtn.onclick=()=>{
   const inner=document.createElement('div');inner.className='ovi';
   const copy=$app.cloneNode(true);copy.removeAttribute('id');inner.appendChild(copy);
   const bc=thBtn.cloneNode(false);bc.removeAttribute('id');bc.className='thb';bc.style.pointerEvents='none';bc.innerHTML=next==='dark'?SUN:MOON;
-  ov.appendChild(inner);ov.appendChild(bc);
+  ov.appendChild(artDiv('bgart'));ov.appendChild(inner);ov.appendChild(bc);
   ov.style.clipPath='circle(0px at 0px 0px)';
   document.body.appendChild(ov);
   const W=ov.clientWidth||innerWidth,H=ov.clientHeight||innerHeight;
@@ -150,7 +208,31 @@ thBtn.onclick=()=>{
   requestAnimationFrame(()=>requestAnimationFrame(()=>{an.play();sp.forEach(a=>a.play());}));
   an.onfinish=()=>{setTheme(next);removeEventListener('scroll',place);ov.remove();busy=false;};
 };
-P.get('admin')==='1'?admin():customer();
+
+const PW_SALT="b74d4923e3ed5241e0e21f89bd888f13",PW_HASH="260718625f59d1bbfc3546a153adb1e1203896f23319c313db45d25992be7630",PW_ITER=200000;
+const hex2buf=h=>new Uint8Array(h.match(/../g).map(x=>parseInt(x,16)));
+const buf2hex=b=>[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('');
+async function checkPw(pw){
+  const key=await crypto.subtle.importKey('raw',new TextEncoder().encode(pw),'PBKDF2',false,['deriveBits']);
+  const bits=await crypto.subtle.deriveBits({name:'PBKDF2',salt:hex2buf(PW_SALT),iterations:PW_ITER,hash:'SHA-256'},key,256);
+  return buf2hex(bits)===PW_HASH;
+}
+function gate(){
+  let ok=false;try{ok=sessionStorage.getItem('adm')==='1';}catch(e){}
+  if(ok)return admin();
+  $app.innerHTML='<h1>ورود مدیر</h1><label>رمز عبور</label><input id="pw" type="password" autocomplete="off"><div id="pe" class="warn" style="display:none"></div><button class="go" id="pgo" style="width:100%;margin-top:12px">ورود</button>';
+  const go=async()=>{
+    const e=document.getElementById('pe');e.style.display='none';
+    if(!(window.crypto&&crypto.subtle)){e.textContent='این مرورگر یا آدرس از ورود امن پشتیبانی نمی‌کند. سایت را با آدرس https باز کنید.';e.style.display='block';return;}
+    const v=document.getElementById('pw').value;let good=false;
+    try{good=await checkPw(v);}catch(x){}
+    if(good){try{sessionStorage.setItem('adm','1');}catch(x){}admin();}
+    else{await new Promise(r=>setTimeout(r,1000));e.textContent='رمز اشتباه است.';e.style.display='block';}
+  };
+  document.getElementById('pgo').onclick=go;
+  document.getElementById('pw').onkeydown=ev=>{if(ev.key==='Enter')go();};
+}
+P.get('admin')==='1'?gate():customer();
 </script>
 </body>
 </html>
