@@ -1,8 +1,9 @@
 <!DOCTYPE html>
-<html lang="fa" dir="rtl" data-theme="dark"><head>
+<html lang="fa" dir="rtl">
+<head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>کافه نمونه</title>
+<title>منوی دیجیتال</title>
 <script>try{var t=localStorage.getItem('th')||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');document.documentElement.dataset.theme=t}catch(e){document.documentElement.dataset.theme='light'}</script>
 <style>
 :root,.th-light{--bg:#f5ebe0;--card:#fffaf3;--tx:#3b2314;--mu:#8a6f5a;--ac:#8b5a2b;--bd:#e3d0b8;--on:#fff;color-scheme:light}
@@ -34,11 +35,11 @@ input{background:var(--bg);color:var(--tx);border:1px solid var(--bd);border-rad
 .ok{text-align:center;padding:40px 10px;font-size:18px;line-height:2}
 label{display:block;font-size:13px;color:var(--mu);margin:8px 0 3px}
 </style>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script></head>
+</head>
 <body>
-<button id="th" type="button" aria-label="تغییر حالت روز و شب"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="3"></circle><path d="M8 1.5v1.5M8 13v1M1.5 8H3M13 8h1M3.4 3.4l1 1M11.6 3.4l-1 1M3.4 12.6l1-1"></path><path d="M9.5 21a3.5 3.5 0 0 1-.4-6.97A5 5 0 0 1 18.7 15.3 2.9 2.9 0 0 1 18 21z" fill="var(--card)"></path></svg></button>
+<button id="th" type="button" aria-label="تغییر حالت روز و شب"></button>
 <div class="w" id="app"></div>
-<script type="application/json" id="menu-data">{"name":"کافه آسمون","tables":8,"phone":"09012113920","items":[{"id":"a1","name":"اسپرسووچ","price":685000,"cat":"نوشیدنی گرم"},{"id":"a2","name":"کاپوچینووو","price":856000,"cat":"نوشیدنی گرم"},{"id":"a3","name":"چای","price":40000,"cat":"نوشیدنی گرم"},{"id":"b1","name":"لیموناد","price":70000,"cat":"نوشیدنی سرد"},{"id":"b2","name":"آیس لاته","price":95000,"cat":"نوشیدنی سرد"},{"id":"c1","name":"ساندویچ مرغ","price":180000,"cat":"غذا"},{"id":"c2","name":"پاستا آلفردو","price":230000,"cat":"غذا"},{"id":"d1","name":"چیزکیک","price":120000,"cat":"دسر"}]}</script>
+<script type="application/json" id="menu-data">{"name":"کافه نمونه","tables":8,"phone":"09012113920","items":[{"id":"a1","name":"اسپرسووچ","price":685000,"cat":"نوشیدنی گرم"},{"id":"a2","name":"کاپوچینووو","price":856000,"cat":"نوشیدنی گرم"},{"id":"a3","name":"چای","price":40000,"cat":"نوشیدنی گرم"},{"id":"b1","name":"لیموناد","price":70000,"cat":"نوشیدنی سرد"},{"id":"b2","name":"آیس لاته","price":95000,"cat":"نوشیدنی سرد"},{"id":"c1","name":"ساندویچ مرغ","price":180000,"cat":"غذا"},{"id":"c2","name":"پاستا آلفردو","price":230000,"cat":"غذا"},{"id":"d1","name":"چیزکیک","price":120000,"cat":"دسر"}]}</script>
 <script>
 const $app=document.getElementById('app');
 const D=JSON.parse(document.getElementById('menu-data').textContent);
@@ -59,15 +60,28 @@ function customer(){
   h+='<div class="bar"><div><b>جمع: '+fa(tot())+' تومان</b><button class="go" id="send" '+(cnt()&&table?'':'disabled')+'>ثبت سفارش</button></div></div>';
   $app.innerHTML=h;
   $app.querySelectorAll('.q').forEach(b=>b.onclick=()=>{const i=b.dataset.i;cart[i]=Math.max(0,(cart[i]||0)+ +b.dataset.d);customer();});
-  document.getElementById('send').onclick=submit;
+  document.getElementById('send').onclick=preview;
+}
+const pn=n=>Number(n).toLocaleString('en-US').replace(/\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[d]);
+function orderRows(){return D.items.filter(i=>cart[i.id]);}
+function orderText(){
+  const lines=orderRows().map(i=>cart[i.id]+'× '+i.name+' = '+pn(cart[i.id]*i.price)+' تومان');
+  return 'سفارش جدید - میز '+pn(table)+'\n'+lines.join('\n')+'\n------\nجمع کل: '+pn(tot())+' تومان';
+}
+function preview(){
+  const rows=orderRows();
+  $app.innerHTML='<h1>'+esc(D.name)+'</h1><span class="tb">میز '+fa(table)+'</span><h2>پیش‌نمایش سفارش</h2>'+
+  rows.map(i=>'<div class="it"><div class="n">'+fa(cart[i.id])+'× '+esc(i.name)+'<div class="p">'+fa(i.price)+' تومان</div></div><b>'+fa(cart[i.id]*i.price)+'</b></div>').join('')+
+  '<div class="warn"><b>جمع کل: '+fa(tot())+' تومان</b><br>اگر سفارش درست است «تأیید و ارسال پیامک» را بزنید.</div>'+
+  '<div class="bar"><div><button class="sm" id="edit">ویرایش سفارش</button><button class="go" id="ok">تأیید و ارسال پیامک</button></div></div>';
+  document.getElementById('edit').onclick=customer;
+  document.getElementById('ok').onclick=submit;
 }
 function submit(){
-  const lines=D.items.filter(i=>cart[i.id]).map(i=>cart[i.id]+'× '+i.name);
-  const total=tot();
-  const text='سفارش جدید - میز '+table+'\n'+lines.join('\n')+'\nجمع: '+total+' تومان';
+  const rows=orderRows(),text=orderText();
   const phone=(D.phone||'').replace(/[^\d+]/g,'');
   if(phone){location.href='sms:'+phone+'?&body='+encodeURIComponent(text);}
-  $app.innerHTML='<div class="ok">'+(phone?'پیامک سفارش آماده شد. حتماً دکمه «ارسال» را در برنامه پیامک بزنید.':'لطفاً سفارش را به صندوق اعلام کنید.')+'<br><br><b>میز '+fa(table)+'</b><br>'+lines.map(esc).join('<br>')+'<br>جمع: '+fa(total)+' تومان<br><br><button class="sm" id="back">بازگشت به منو</button></div>';
+  $app.innerHTML='<div class="ok">'+(phone?'پیامک سفارش آماده شد. حتماً دکمه «ارسال» را در برنامه پیامک بزنید.':'لطفاً سفارش را به صندوق اعلام کنید.')+'<br><br><b>میز '+fa(table)+'</b><br>'+rows.map(i=>fa(cart[i.id])+'× '+esc(i.name)).join('<br>')+'<br><b>جمع کل: '+fa(tot())+' تومان</b><br><br><button class="sm" id="back">بازگشت به منو</button></div>';
   document.getElementById('back').onclick=customer;
 }
 
@@ -138,6 +152,5 @@ thBtn.onclick=()=>{
 };
 P.get('admin')==='1'?admin():customer();
 </script>
-
-
-</body></html>
+</body>
+</html>
