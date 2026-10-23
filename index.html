@@ -1,6 +1,5 @@
 <!DOCTYPE html>
-<html lang="fa" dir="rtl">
-<head>
+<html lang="fa" dir="rtl" data-theme="dark"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>منوی دیجیتال</title>
@@ -35,19 +34,11 @@ input{background:var(--bg);color:var(--tx);border:1px solid var(--bd);border-rad
 .ok{text-align:center;padding:40px 10px;font-size:18px;line-height:2}
 label{display:block;font-size:13px;color:var(--mu);margin:8px 0 3px}
 </style>
-</head>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script></head>
 <body>
-<button id="th" type="button" aria-label="تغییر حالت روز و شب"></button>
+<button id="th" type="button" aria-label="تغییر حالت روز و شب"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="3"></circle><path d="M8 1.5v1.5M8 13v1M1.5 8H3M13 8h1M3.4 3.4l1 1M11.6 3.4l-1 1M3.4 12.6l1-1"></path><path d="M9.5 21a3.5 3.5 0 0 1-.4-6.97A5 5 0 0 1 18.7 15.3 2.9 2.9 0 0 1 18 21z" fill="var(--card)"></path></svg></button>
 <div class="w" id="app"></div>
-<script type="application/json" id="menu-data">{"name":"کافه نمونه","tables":8,"phone":"","items":[
-{"id":"a1","cat":"نوشیدنی گرم","name":"اسپرسو","price":65000},
-{"id":"a2","cat":"نوشیدنی گرم","name":"کاپوچینو","price":85000},
-{"id":"a3","cat":"نوشیدنی گرم","name":"چای","price":40000},
-{"id":"b1","cat":"نوشیدنی سرد","name":"لیموناد","price":70000},
-{"id":"b2","cat":"نوشیدنی سرد","name":"آیس لاته","price":95000},
-{"id":"c1","cat":"غذا","name":"ساندویچ مرغ","price":180000},
-{"id":"c2","cat":"غذا","name":"پاستا آلفردو","price":230000},
-{"id":"d1","cat":"دسر","name":"چیزکیک","price":120000}]}</script>
+<script type="application/json" id="menu-data">{"name":"کافه نمونه","tables":8,"phone":"09012113920","items":[{"id":"a1","name":"اسپرسووچ","price":685000,"cat":"نوشیدنی گرم"},{"id":"a2","name":"کاپوچینو","price":85000,"cat":"نوشیدنی گرم"},{"id":"a3","name":"چای","price":40000,"cat":"نوشیدنی گرم"},{"id":"b1","name":"لیموناد","price":70000,"cat":"نوشیدنی سرد"},{"id":"b2","name":"آیس لاته","price":95000,"cat":"نوشیدنی سرد"},{"id":"c1","name":"ساندویچ مرغ","price":180000,"cat":"غذا"},{"id":"c2","name":"پاستا آلفردو","price":230000,"cat":"غذا"},{"id":"d1","name":"چیزکیک","price":120000,"cat":"دسر"}]}</script>
 <script>
 const $app=document.getElementById('app');
 const D=JSON.parse(document.getElementById('menu-data').textContent);
@@ -140,5 +131,6 @@ thBtn.onclick=()=>{
 };
 P.get('admin')==='1'?admin():customer();
 </script>
-</body>
-</html>
+
+
+</body></html>
