@@ -11,7 +11,7 @@
 #th,.thb{position:fixed;top:12px;left:12px;z-index:20;width:42px;height:42px;border-radius:50%;border:1px solid var(--bd);background:var(--card);color:var(--ac);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0}
 #th svg,.thb svg{width:24px;height:24px}
 .ov{position:fixed;inset:0;z-index:50;pointer-events:none;will-change:clip-path;transform:translateZ(0);background:var(--bg);color:var(--tx);overflow:hidden}
-.ovi{position:absolute;left:0;right:0;top:0;padding-bottom:110px}
+.ovi{position:absolute;left:0;right:0;top:0;padding-bottom:110px;will-change:opacity}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--tx);font-family:Vazirmatn,Tahoma,sans-serif;padding-bottom:110px}
 .w{max-width:620px;margin:auto;padding:14px}
@@ -37,10 +37,7 @@ button.chip{background:var(--card);color:var(--tx);border:1px solid var(--bd);bo
 button.chip.on{background:var(--ac);color:var(--on);border-color:var(--ac)}
 .wish{font-size:20px;margin:14px 0 22px;color:var(--ac)}
 .ok .sm{margin:4px}
-#bgart,.bgart{position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.3}
-#bgart svg,.bgart svg{width:100%;height:100%;display:block}
-.ic{fill:var(--bg);stroke:var(--ac);stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
-.ic.nf{fill:none}
+#bgart,.bgart{position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.3;background-size:280px 280px;background-repeat:repeat}
 label{display:block;font-size:13px;color:var(--mu);margin:8px 0 3px}
 </style>
 </head>
@@ -86,7 +83,7 @@ function preview(){
   document.getElementById('edit').onclick=customer;
   document.getElementById('ok').onclick=submit;
 }
-const WISH=['روز خوبی رو برایتان آرزومندیم','با آرزوی بهترین‌ها برای شما','امیدواریم لحظه‌های خوشی در کنار ما داشته باشید','نوش جان! روزتان پر از آرامش و شادی'];
+const WISH=["روز خوبی رو برایتان آرزومندیم", "با آرزوی بهترین‌ها برای شما", "امیدواریم لحظه‌های خوشی در کنار ما داشته باشید", "نوش جان! روزتان پر از آرامش و شادی", "هر لحظه‌تان به شیرینی همین فنجان باد", "امیدواریم امروز برایتان پر از اتفاق‌های خوب باشد", "ممنون که مهمان ما هستید، دلتان همیشه شاد", "آرزو می‌کنیم هر روزتان با لبخند شروع شود", "قهوه‌تان داغ، دلتان گرم و روزتان خوش", "با ما بودنتان باعث افتخار ماست", "لحظه‌هایی دلنشین و پر از آرامش برایتان آرزو داریم", "امیدواریم طعم این لحظه‌ها تا مدت‌ها در یادتان بماند", "روزتان پر از خبرهای خوب و دل‌های شاد", "فردایی روشن‌تر از امروز برایتان آرزو می‌کنیم", "از اینکه کنار ما هستید خوشحالیم، دلتان شاد", "انرژی و شادی امروزتان بی‌پایان باشد", "آرزوی ما یک روز آرام و زیبا برای شماست", "هر چه دلتان می‌خواهد، زودتر به دست بیاورید", "خوش بگذرد! امیدواریم اینجا حس خوبی داشته باشید", "دلتان به شادی، روزتان به آرامی و شبتان به خوبی"];
 function thanks(title,note){
   const w=WISH[Math.floor(Math.random()*WISH.length)];
   $app.innerHTML='<div class="ok"><b>'+title+'</b>'+(note?'<div style="font-size:14px">'+note+'</div>':'')+'<div class="wish">'+w+'</div><button class="sm" id="back">بازگشت به منو</button><button class="sm" id="svc2">درخواست خدمات</button></div>';
@@ -98,10 +95,12 @@ function sendSms(text){
   if(phone){location.href='sms:'+phone+'?&body='+encodeURIComponent(text);}
   return !!phone;
 }
+function lockUI(){$app.querySelectorAll('button,input').forEach(e=>e.disabled=true);}
+function thanksLater(title,note){lockUI();setTimeout(()=>thanks(title,note),5000);}
 function submit(){
   const ok=sendSms(orderText());
   cart={};
-  thanks('✅ ممنون از سفارش شما',ok?'':'ارسال خودکار در دسترس نیست. لطفاً سفارش را به صندوق اعلام کنید.');
+  thanksLater('✅ ممنون از سفارش شما',ok?'':'ارسال خودکار در دسترس نیست. لطفاً سفارش را به صندوق اعلام کنید.');
 }
 const SVC=['دستمال','نی','آب','قاشق و چنگال','صورت‌حساب','گارسون'];
 function serviceText(sel,extra){
@@ -117,7 +116,7 @@ function service(){
   document.getElementById('cancel').onclick=customer;
   document.getElementById('sendsvc').onclick=()=>{
     const ok=sendSms(serviceText([...sel],document.getElementById('ex').value.trim()));
-    thanks('درخواست شما آماده شد',ok?'برنامه پیامک باز می‌شود؛ حتماً دکمه «ارسال» را بزنید.':'ارسال خودکار در دسترس نیست. لطفاً به گارسون اعلام کنید.');
+    thanksLater('درخواست شما آماده شد',ok?'برنامه پیامک باز می‌شود؛ حتماً دکمه «ارسال» را بزنید.':'ارسال خودکار در دسترس نیست. لطفاً به گارسون اعلام کنید.');
   };
 }
 
@@ -147,7 +146,7 @@ function admin(){
     doc.querySelector('#menu-data').textContent=JSON.stringify(nd);
     doc.removeAttribute('data-theme');
     doc.querySelector('#app').innerHTML='';
-    doc.querySelectorAll('#bgart,.ov').forEach(n=>n.remove());
+    doc.querySelectorAll('#bgart,.ov,#artcss').forEach(n=>n.remove());
     const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['<!DOCTYPE html>\n'+doc.outerHTML],{type:'text/html'}));a.download='index.html';a.click();
   };
 }
@@ -170,22 +169,30 @@ iced:'<path class="ic" d="M14 14h20l-3 28H17z"/><path class="ic nf" d="M12 14h24
 donut:'<circle class="ic" cx="24" cy="24" r="16"/><circle class="ic" cx="24" cy="24" r="5.5"/><path class="ic nf" d="M15 14l3 2M33 14l-3 2M12 26l3-1M36 27l-3-1M24 38v-3M17 33l2-2"/>'
 };
 const ART=[['espresso',12,14,-6],['icecream',150,30,8],['mug',82,108,4],['croissant',205,122,-10],['bean',14,196,20],['cupcake',146,196,-4],['iced',214,208,6],['donut',20,108,-8],['bean',226,28,-30]];
-let artN=0;
-function artSvg(k){
-  const syms=Object.keys(ICONS).map(n=>'<symbol id="'+n+k+'" viewBox="0 0 48 48">'+ICONS[n]+'</symbol>').join('');
-  const uses=ART.map(a=>'<use href="#'+a[0]+k+'" x="'+a[1]+'" y="'+a[2]+'" width="56" height="56" transform="rotate('+a[3]+' '+(a[1]+28)+' '+(a[2]+28)+')"/>').join('');
-  return '<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%"><defs>'+syms+'<pattern id="pt'+k+'" width="280" height="280" patternUnits="userSpaceOnUse">'+uses+'</pattern></defs><rect width="100%" height="100%" fill="url(#pt'+k+')"/></svg>';
+function artTile(stroke,fill){
+  const syms=Object.keys(ICONS).map(n=>'<symbol id="'+n+'" viewBox="0 0 48 48">'+ICONS[n]+'</symbol>').join('');
+  const uses=ART.map(a=>'<use href="#'+a[0]+'" x="'+a[1]+'" y="'+a[2]+'" width="56" height="56" transform="rotate('+a[3]+' '+(a[1]+28)+' '+(a[2]+28)+')"/>').join('');
+  const svg='<svg xmlns="http://www.w3.org/2000/svg" width="280" height="280" viewBox="0 0 280 280"><style>.ic{fill:'+fill+';stroke:'+stroke+';stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}.nf{fill:none}</style><defs>'+syms+'</defs>'+uses+'</svg>';
+  return 'url("data:image/svg+xml,'+encodeURIComponent(svg)+'")';
 }
-function artDiv(cls){const d=document.createElement('div');d.className=cls;d.innerHTML=artSvg('x'+(++artN));return d;}
+(function(){
+  const L=artTile('#8b5a2b','#f5ebe0'),Dk=artTile('#d9a066','#1e140e');
+  const st=document.createElement('style');st.id='artcss';
+  st.textContent='#bgart,.bgart,.th-light .bgart{background-image:'+L+'}:root[data-theme="dark"] #bgart,.th-dark .bgart{background-image:'+Dk+'}';
+  document.head.appendChild(st);
+})();
+function artDiv(cls){const d=document.createElement('div');d.className=cls;return d;}
 document.querySelectorAll('#bgart').forEach(n=>n.remove());
 const bgEl=artDiv('bgart');bgEl.id='bgart';document.body.prepend(bgEl);
 let busy=false;
 const ease=t=>t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
 const circ=(cs,r)=>cs.map(c=>'M'+(c[0]-r)+' '+c[1]+'a'+r+' '+r+' 0 1 0 '+(2*r)+' 0a'+r+' '+r+' 0 1 0 '+(-2*r)+' 0z').join('');
+const pth=(cs,r)=>'path(nonzero,"'+circ(cs,r)+'")';
 thBtn.onclick=()=>{
   if(busy)return;
   const next=document.documentElement.dataset.theme==='dark'?'light':'dark';
-  if(matchMedia('(prefers-reduced-motion: reduce)').matches){setTheme(next);return;}
+  const canAnim=window.CSS&&CSS.supports&&CSS.supports('clip-path','path("M0 0")');
+  if(!canAnim||matchMedia('(prefers-reduced-motion: reduce)').matches){setTheme(next);return;}
   busy=true;
   const ov=document.createElement('div');ov.className='ov th-'+next;
   const inner=document.createElement('div');inner.className='ovi';
@@ -199,15 +206,19 @@ thBtn.onclick=()=>{
   const R=Math.hypot(W,H)/2+24;
   const place=()=>{inner.style.top=(-scrollY)+'px';};place();
   addEventListener('scroll',place,{passive:true});
-  const DUR=1200;let t0=null;
+  const DUR=1200;
   const done=()=>{setTheme(next);removeEventListener('scroll',place);ov.remove();busy=false;};
-  const step=now=>{
-    if(t0===null)t0=now;
-    const t=Math.min(1,(now-t0)/DUR);
-    ov.style.clipPath='path(nonzero,"'+circ(cs,Math.max(.5,R*ease(t)))+'")';
-    if(t<1)requestAnimationFrame(step);else done();
+  const go=()=>{
+    let t0=null;
+    const step=now=>{
+      if(t0===null)t0=now;
+      const t=Math.min(1,(now-t0)/DUR);
+      ov.style.clipPath=pth(cs,Math.max(.5,R*ease(t)));
+      if(t<1)requestAnimationFrame(step);else done();
+    };
+    requestAnimationFrame(step);
   };
-  requestAnimationFrame(step);
+  requestAnimationFrame(()=>requestAnimationFrame(()=>requestAnimationFrame(go)));
 };
 
 const PW_SALT="b74d4923e3ed5241e0e21f89bd888f13",PW_HASH="260718625f59d1bbfc3546a153adb1e1203896f23319c313db45d25992be7630",PW_ITER=200000;
